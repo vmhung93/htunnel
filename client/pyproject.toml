@@ -1,0 +1,13 @@
+[project]
+name = "htunnel-client"
+version = "0.1.0"
+description = "htunnel client: forwards relayed webhooks to a local app"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "httpx-sse>=0.4.3",
+]
+
+[tool.ruff]
+line-length = 100

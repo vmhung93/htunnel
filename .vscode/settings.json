@@ -1,0 +1,16 @@
+{
+  // --- FILE EXCLUSIONS ---
+  // Keeps your file tree and searches clean by hiding build/cache artifacts
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/target": true // Hides Rust compilation target folder
+  },
+  "search.exclude": {
+    "**/target": true,
+    "**/.venv": true
+  }
+}
