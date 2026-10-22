@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import random
+import sys
 import time
 
 import httpx
@@ -16,6 +17,24 @@ logger = logging.getLogger("htunnel-client")
 SSE_READ_TIMEOUT = 60.0
 BACKOFF_INITIAL = 1.0
 BACKOFF_MAX = 30.0
+
+# ANSI colors only when logging to a terminal; respect https://no-color.org
+USE_COLOR = sys.stderr.isatty() and "NO_COLOR" not in os.environ
+GREEN, CYAN, YELLOW, RED, BOLD = "32", "36", "33", "31", "1"
+
+
+def color(text: str, code: str) -> str:
+    return f"\033[{code}m{text}\033[0m" if USE_COLOR else text
+
+
+def status_color(status: int) -> str:
+    if status >= 500:
+        return RED
+    if status >= 400:
+        return YELLOW
+    if status >= 300:
+        return CYAN
+    return GREEN
 
 
 class AuthError(Exception):
@@ -114,22 +133,28 @@ class TunnelClient:
                 )
             except httpx.TimeoutException:
                 logger.error(
-                    "%s %s -> local app timed out after %.0fs [%s]",
-                    method, path, self.local_timeout, request_id[:8],
+                    "%s %s -> %s [%s]",
+                    color(method, BOLD), path,
+                    color(f"local app timed out after {self.local_timeout:.0f}s", RED),
+                    request_id[:8],
                 )
                 return
             except httpx.RequestError as exc:
                 logger.error(
-                    "%s %s -> cannot reach local app at %s: %s [%s]",
-                    method, path, self.local_url, repr(exc), request_id[:8],
+                    "%s %s -> %s: %s [%s]",
+                    color(method, BOLD), path,
+                    color(f"cannot reach local app at {self.local_url}", RED),
+                    repr(exc), request_id[:8],
                 )
                 return
 
         elapsed_ms = (time.monotonic() - started) * 1000
         log = logger.warning if response.is_error else logger.info
         log(
-            "%s %s -> %d (%.0fms) [%s]",
-            method, path, response.status_code, elapsed_ms, request_id[:8],
+            "%s %s -> %s (%.0fms) [%s]",
+            color(method, BOLD), path,
+            color(str(response.status_code), status_color(response.status_code)),
+            elapsed_ms, request_id[:8],
         )
 
 
